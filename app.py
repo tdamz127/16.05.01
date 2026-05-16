@@ -8,6 +8,7 @@ import time
 import json
 import random
 import math
+import re
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dispatcher.db'
@@ -172,6 +173,10 @@ def get_bybit_headers(api_key, api_secret, payload_str="{}"):
     sig = hmac.new(bytes(api_secret, "utf-8"), (ts + api_key + "5000" + payload_str).encode("utf-8"), hashlib.sha256).hexdigest()
     return {'X-BAPI-API-KEY': api_key, 'X-BAPI-SIGN': sig, 'X-BAPI-TIMESTAMP': ts, 'X-BAPI-RECV-WINDOW': "5000", 'Content-Type': 'application/json'}
 
+def _normalize_payment_name(name):
+    compact = re.sub(r'[^A-Z0-9]+', ' ', str(name or '').upper()).strip()
+    return re.sub(r'\s+', ' ', compact)
+
 def _normalize_payment_names(raw_payments):
     if raw_payments is None:
         return []
@@ -188,7 +193,7 @@ def _normalize_payment_names(raw_payments):
                 candidates.append(str(p).strip())
     else:
         candidates = [str(raw_payments).strip()]
-    return [p.upper() for p in candidates if p]
+    return [_normalize_payment_name(p) for p in candidates if p]
 
 def _extract_payments_from_obj(data_obj):
     if not isinstance(data_obj, dict):
@@ -205,7 +210,7 @@ def _payments_overlap(requested_payments, candidate_payments):
         return False
     for req in requested_payments:
         for cand in candidate_payments:
-            if req == cand or req in cand or cand in req:
+            if req == cand or cand.startswith(f"{req} ") or req.startswith(f"{cand} "):
                 return True
     return False
 
