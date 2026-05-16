@@ -193,7 +193,7 @@ def _normalize_payment_names(raw_payments):
 def _extract_payments_from_obj(data_obj):
     if not isinstance(data_obj, dict):
         return []
-    for key in ("payments", "payment_methods", "paymentMethods", "pttt", "pttt_str"):
+    for key in ("payments", "payment_methods", "paymentMethods", "pttt_str"):
         if key in data_obj and data_obj.get(key) not in (None, "", []):
             return _normalize_payment_names(data_obj.get(key))
     return []
@@ -548,8 +548,9 @@ def auto_create_ad():
         res_prices = requests.get(f"{OLD_APP_URL}/api/prices", timeout=10)
         prices_data = res_prices.json().get('data', [])
         matched_price = _find_price_entry(prices_data, fiat, pttt_str)
-        buy_price_str = str((matched_price or {}).get('buy_price', '0')).replace(',', '')
-        buy_price_raw = float((matched_price or {}).get('buy_price_raw', 0) or 0)
+        matched_price_data = matched_price or {}
+        buy_price_str = str(matched_price_data.get('buy_price', '0')).replace(',', '')
+        buy_price_raw = float(matched_price_data.get('buy_price_raw', 0) or 0)
     except: 
         buy_price_str = "0"
         buy_price_raw = 0
