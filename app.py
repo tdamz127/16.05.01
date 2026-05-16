@@ -8,6 +8,7 @@ import time
 import json
 import random
 import math
+import re
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dispatcher.db'
@@ -172,6 +173,62 @@ def get_bybit_headers(api_key, api_secret, payload_str="{}"):
     sig = hmac.new(bytes(api_secret, "utf-8"), (ts + api_key + "5000" + payload_str).encode("utf-8"), hashlib.sha256).hexdigest()
     return {'X-BAPI-API-KEY': api_key, 'X-BAPI-SIGN': sig, 'X-BAPI-TIMESTAMP': ts, 'X-BAPI-RECV-WINDOW': "5000", 'Content-Type': 'application/json'}
 
+def _normalize_payment_name(name):
+    compact = re.sub(r'[^A-Z0-9]+', ' ', str(name or '').upper()).strip()
+    return re.sub(r'\s+', ' ', compact)
+
+def _normalize_payment_names(raw_payments):
+    if raw_payments is None:
+        return []
+    if isinstance(raw_payments, str):
+        candidates = [p.strip() for p in raw_payments.split(',') if p and p.strip()]
+    elif isinstance(raw_payments, (list, tuple, set)):
+        candidates = []
+        for p in raw_payments:
+            if isinstance(p, dict):
+                name = p.get("paymentName") or p.get("name") or p.get("payment_name")
+                if name:
+                    candidates.append(str(name).strip())
+            elif p is not None:
+                candidates.append(str(p).strip())
+    else:
+        candidates = [str(raw_payments).strip()]
+    return [_normalize_payment_name(p) for p in candidates if p]
+
+def _extract_payments_from_obj(data_obj):
+    if not isinstance(data_obj, dict):
+        return []
+    for key in ("payments", "payment_methods", "paymentMethods", "pttt_str"):
+        if key in data_obj and data_obj.get(key) not in (None, "", []):
+            return _normalize_payment_names(data_obj.get(key))
+    return []
+
+def _payments_overlap(requested_payments, candidate_payments):
+    if not requested_payments:
+        return True
+    if not candidate_payments:
+        return False
+    for req in requested_payments:
+        for cand in candidate_payments:
+            if req == cand or cand.startswith(f"{req} ") or req.startswith(f"{cand} "):
+                return True
+    return False
+
+def _find_price_entry(prices_data, fiat, requested_payments):
+    fiat_upper = (fiat or "").upper()
+    normalized_requested = _normalize_payment_names(requested_payments)
+    first_currency_match = None
+    for price in prices_data:
+        if (price.get('currency', '') or '').upper() != fiat_upper:
+            continue
+        if first_currency_match is None:
+            first_currency_match = price
+        if _payments_overlap(normalized_requested, _extract_payments_from_obj(price)):
+            return price
+    if normalized_requested:
+        return None
+    return first_currency_match
+
 @app.route('/api/get_buy_ads_dashboard', methods=['GET'])
 def get_buy_ads_dashboard():
     group_name = request.args.get('group')
@@ -182,15 +239,11 @@ def get_buy_ads_dashboard():
         confirmed_db = ConfirmedOrder.query.all()
         confirmed_orders_dict = {str(c.order_id): True for c in confirmed_db}
 
-        prices_map = {}
-        prices_str_map = {} 
+        prices_data = []
         try:
             res_prices = requests.get(f"{OLD_APP_URL}/api/prices", timeout=10)
             if res_prices.status_code == 200:
-                for p in res_prices.json().get('data', []):
-                    currency = p.get('currency', '').upper()
-                    prices_map[currency] = p.get('buy_price_raw', 0)
-                    prices_str_map[currency] = p.get('buy_price', 'N/A') 
+                prices_data = res_prices.json().get('data', [])
         except: pass
 
         try:
@@ -198,9 +251,10 @@ def get_buy_ads_dashboard():
             if res1.status_code == 200: 
                 configs = res1.json().get('data', [])
                 for c in configs: 
-                    fiat = c.get('fiat', '').upper()
-                    c['ref_price'] = prices_map.get(fiat, 0)
-                    c['ref_price_str'] = prices_str_map.get(fiat, 'N/A') 
+                    fiat = c.get('fiat', '')
+                    matched_price = _find_price_entry(prices_data, fiat, _extract_payments_from_obj(c))
+                    c['ref_price'] = matched_price.get('buy_price_raw', 0) if matched_price else 0
+                    c['ref_price_str'] = matched_price.get('buy_price', 'N/A') if matched_price else 'N/A'
         except: pass
         
         buy_accounts = [acc.email for acc in AccountRole.query.filter_by(role='buy').all()]
@@ -498,8 +552,10 @@ def auto_create_ad():
     try:
         res_prices = requests.get(f"{OLD_APP_URL}/api/prices", timeout=10)
         prices_data = res_prices.json().get('data', [])
-        buy_price_str = next((str(p.get('buy_price', '0')).replace(',', '') for p in prices_data if p.get('currency', '').upper() == fiat.upper()), "0")
-        buy_price_raw = next((float(p.get('buy_price_raw', 0)) for p in prices_data if p.get('currency', '').upper() == fiat.upper()), 0)
+        matched_price = _find_price_entry(prices_data, fiat, pttt_str)
+        matched_price_data = matched_price or {}
+        buy_price_str = str(matched_price_data.get('buy_price', '0')).replace(',', '')
+        buy_price_raw = float(matched_price_data.get('buy_price_raw', 0) or 0)
     except: 
         buy_price_str = "0"
         buy_price_raw = 0
