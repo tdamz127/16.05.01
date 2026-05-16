@@ -1,0 +1,207 @@
+<!-- ===================== TAB 1: PHÂN PHỐI ĐƠN ===================== -->
+<div class="tab-pane fade show active" id="distribute" role="tabpanel">
+    <div class="row justify-content-center">
+        <div class="col-xl-12 col-lg-12">
+            
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-primary"><i class="bi bi-gear-fill me-1"></i> BẢNG ĐIỀU KHIỂN TÀI KHOẢN</h6>
+                    <button id="btnEditConfig" class="btn btn-outline-danger fw-bold btn-sm py-0 px-2" onclick="enableEdit()" style="display: none; font-size: 0.8rem;">
+                        <i class="bi bi-unlock-fill"></i> MỞ KHÓA
+                    </button>
+                </div>
+
+                <div class="card-body bg-light p-2">
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary rounded-circle">1</span>
+                                <span class="fw-bold text-secondary" style="font-size: 0.8rem;">NHÓM:</span>
+                                <select id="groupSelect" class="form-select form-select-sm fw-bold w-auto shadow-sm" disabled onchange="handleGroupChange()">
+                                    <option value="">Đang tải...</option>
+                                </select>
+                                <button id="btnLoadAccounts" class="btn btn-primary btn-sm fw-bold shadow-sm py-0 px-2" onclick="loadAccounts()" disabled title="Tải lại tài khoản">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                </button>
+                            </div>
+                            
+                            <div id="proxyDisplayArea" class="d-none align-items-center gap-2 border-start ps-3">
+                                <span class="badge bg-warning text-dark rounded-circle">3</span>
+                                <span class="fw-bold text-secondary" style="font-size: 0.8rem;">PROXY:</span>
+                                <span id="proxyDisplayText" class="fw-bold text-dark font-monospace" style="font-size: 0.95rem;">Đang tải...</span>
+                            </div>
+                        </div>
+
+                        <div id="saveActionArea" style="display: none;">
+                            <button id="btnSaveConfig" class="btn btn-success btn-sm fw-bold shadow-sm px-3" onclick="saveConfiguration()">
+                                <i class="bi bi-floppy-fill me-1"></i> LƯU CẤU HÌNH
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="proxyEditArea" class="d-none align-items-center gap-2 mb-2 pb-2 border-bottom">
+                        <span class="badge bg-warning text-dark rounded-circle">3</span>
+                        <span class="fw-bold text-secondary" style="font-size: 0.8rem;">CẤU HÌNH PROXY:</span>
+                        <input type="text" id="proxyIp" class="form-control form-control-sm w-auto" placeholder="IP Proxy">
+                        <input type="text" id="proxyPort" class="form-control form-control-sm" placeholder="Port" style="width: 80px;">
+                        <input type="text" id="proxyUser" class="form-control form-control-sm w-auto" placeholder="Username">
+                        <input type="text" id="proxyPass" class="form-control form-control-sm w-auto" placeholder="Password">
+                        <button class="btn btn-sm btn-secondary fw-bold" onclick="saveProxy()"><i class="bi bi-shield-lock"></i> LƯU</button>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 mb-2 mt-1 ms-1">
+                        <span class="badge bg-success rounded-circle">2</span>
+                        <span class="fw-bold text-secondary" style="font-size: 0.8rem;">GÁN NHÃN TÀI KHOẢN (<span id="accCount">0</span>):</span>
+                    </div>
+                    
+                    <div id="loadingArea" class="text-center py-2" style="display: none;">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    </div>
+                    <div id="accountsArea">
+                        <div class="text-muted small fst-italic ms-4">Vui lòng chọn nhóm và tải dữ liệu.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0" id="buyAdsCard" style="display: none;">
+                <div class="card-header d-flex justify-content-between align-items-center bg-success text-white">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-cart-check-fill me-2"></i> QUẢNG CÁO MUA & ĐƠN CHỜ KHỚP</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <span id="updateTimeText" class="text-light" style="font-size: 0.75rem;"></span>
+                        <button class="btn btn-light btn-sm fw-bold text-success shadow-sm py-0 px-2" style="font-size: 0.8rem;" onclick="loadBuyAdsDashboard()">
+                            <i class="bi bi-arrow-repeat"></i> LÀM MỚI BẢNG
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body bg-light p-3">
+                    <div id="adsLoadingArea" class="text-center py-4" style="display: none;">
+                        <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                    </div>
+                    <div id="dashboardAdsContent">
+                        <div class="text-center py-4 text-muted small">Bấm "Làm mới Bảng" để tải dữ liệu.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
+                    <div><i class="bi bi-terminal-fill me-2"></i> SYSTEM LOGS (Tiến trình Tạo & Xóa QC)</div>
+                    <button class="btn btn-sm btn-outline-light py-0" onclick="document.getElementById('terminalLogs').innerHTML=''" style="font-size: 0.75rem;">XÓA LOGS</button>
+                </div>
+                <div class="terminal-container p-1">
+                    <div id="terminalLogs" class="terminal-log">
+                        <div><span class="log-time">[Hệ thống]</span> <span class="log-info">Sẵn sàng ghi nhận sự kiện...</span></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ===================== TAB 2: LƯU TRỮ ĐƠN CŨ ===================== -->
+<div class="tab-pane fade" id="archive" role="tabpanel">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-archive"></i> KHO LƯU TRỮ TẤT CẢ ĐƠN CŨ (SAU 60 PHÚT)</h6>
+            <button class="btn btn-sm btn-light fw-bold shadow-sm py-0 px-2" style="font-size: 0.8rem;" onclick="renderArchiveTab()">
+                <i class="bi bi-arrow-repeat"></i> LÀM MỚI
+            </button>
+        </div>
+        <div class="card-body bg-light p-3" id="archiveOrdersContent">
+            <div class="text-center py-4 text-muted small">Đang tải kho dữ liệu...</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== TAB 3: TÀI LIỆU API ===================== -->
+<div class="tab-pane fade" id="api" role="tabpanel">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-code-slash"></i> TÀI LIỆU HƯỚNG DẪN KẾT NỐI API</h6>
+        </div>
+        <div class="card-body p-4">
+            
+            <!-- SECTION 1: GET ORDERS -->
+            <h5 class="fw-bold text-primary">1. Lấy danh sách Đơn hàng & Nhóm gán (Export API)</h5>
+            <p>API này được sử dụng để hệ thống thứ 3 kéo thông tin các đơn hàng <strong>đang Active</strong> về xử lý.</p>
+            
+            <div class="mb-3">
+                <span class="badge bg-success fs-6 me-2">GET</span> <code class="fs-6 fw-bold" id="apiUrlDisplay">http://localhost:5005/api/export_orders</code>
+            </div>
+
+            <h6 class="fw-bold mt-3">Cấu trúc phản hồi (JSON Response):</h6>
+            <pre><code>{
+"status": "success",
+"total": 2,
+"data": [
+{
+  "order_id": "1900004704665923584",
+  "owner_account": "accmua1@gmail.com",
+  "owner_group": "nhom_goc_a",
+  "assigned_group": "nhom_telegram_1",
+  "status": 10,
+  "is_confirmed": true
+}
+]
+}</code></pre>
+
+            <table class="table table-bordered table-striped mt-3">
+                <thead class="table-light">
+                    <tr>
+                        <th>Trường (Key)</th>
+                        <th>Kiểu dữ liệu</th>
+                        <th>Ý nghĩa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>order_id</code></td><td>String</td><td>Mã đơn của Bybit.</td></tr>
+                    <tr><td><code>owner_account</code></td><td>String</td><td>Mã tài khoản đang giữ đơn này.</td></tr>
+                    <tr><td><code>owner_group</code></td><td>String</td><td>Mã nhóm của tài khoản đang giữ đơn này.</td></tr>
+                    <tr><td><code>assigned_group</code></td><td>String</td><td><strong>Nhóm tài khoản được gán đơn này.</strong> Nếu chưa gán sẽ là chuỗi rỗng <code>""</code>.</td></tr>
+                    <tr><td><code>status</code></td><td>Integer</td><td>Trạng thái đơn (10: Chờ Pay, 20: Chờ Nhả, 50: Hoàn Thành, v.v...).</td></tr>
+                    <tr class="table-success"><td><code>is_confirmed</code></td><td>Boolean</td><td><strong>True</strong> nếu đơn đã được xác nhận qua Webhook. Mặc định là <strong>False</strong>.</td></tr>
+                </tbody>
+            </table>
+
+            <hr class="my-5">
+
+            <!-- SECTION 2: RECEIVE CONFIRMATION SIGNAL -->
+            <h5 class="fw-bold text-primary">2. Báo cáo / Gỡ Xác nhận Đơn (Callback API)</h5>
+            <p>API này dùng để hệ thống bên thứ 3 bắn tín hiệu báo cáo về lại cho Hệ thống Dispatcher khi người dùng bấm "Xác nhận đơn" (hoặc Gỡ xác nhận).</p>
+            
+            <div class="mb-3">
+                <span class="badge bg-primary fs-6 me-2">POST</span> <code class="fs-6 fw-bold" id="apiConfirmUrlDisplay">http://localhost:5005/api/confirm_order</code>
+            </div>
+
+            <h6 class="fw-bold mt-3">Body Payload (JSON):</h6>
+            <pre><code>{
+  "order_id": "1900004704665923584",
+  "action": "confirmed", 
+  "note": "Đã chuyển khoản xong"
+}</code></pre>
+
+            <table class="table table-bordered table-striped mt-3">
+                <thead class="table-light">
+                    <tr>
+                        <th>Trường (Key)</th>
+                        <th>Kiểu dữ liệu</th>
+                        <th>Ý nghĩa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>order_id</code></td><td>String</td><td>Mã đơn hàng cần xác nhận (Bắt buộc).</td></tr>
+                    <tr><td><code>action</code></td><td>String</td><td>Truyền <code>confirmed</code> để Xác nhận. Truyền <code>unconfirmed</code> để Gỡ xác nhận.</td></tr>
+                    <tr><td><code>note</code></td><td>String</td><td>Ghi chú thêm (Không bắt buộc).</td></tr>
+                </tbody>
+            </table>
+
+            <h6 class="fw-bold mt-4">Phản hồi Thành công (JSON):</h6>
+            <pre><code>{
+  "status": "success",
+  "message": "Đã ghi nhận trạng thái xác nhận cho đơn 1900004704665923584"
+}</code></pre>
+
+        </div>
+    </div>
+</div>

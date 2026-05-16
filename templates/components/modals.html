@@ -1,0 +1,262 @@
+<!-- ===================== MODAL HIỂN THỊ CHI TIẾT QUẢNG CÁO ===================== -->
+<div class="modal fade" id="adDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-search"></i> THÔNG TIN CHI TIẾT QUẢNG CÁO GỐC (FULL JSON DATA)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" id="adDetailsContent">
+                <div class="p-4 text-center">
+                    <div class="spinner-border text-success" role="status"></div>
+                    <div class="mt-2 text-muted">Đang lấy dữ liệu từ Bybit...</div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-1">
+                <span class="text-muted small fst-italic">Dữ liệu được truy xuất trực tiếp từ Bybit API (/v5/p2p/item/info)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== MODAL KHO ĐƠN CŨ (Dự phòng) ===================== -->
+<div class="modal fade" id="oldOrdersModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-archive"></i> KHO ĐƠN ĐÃ LƯU TRỮ (SAU 60 PHÚT)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light p-3" id="oldOrdersContent">
+                <div class="text-center py-4 text-muted small">Chưa có đơn nào trong kho lưu trữ.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== MODAL CẤU HÌNH QC ===================== -->
+<div class="modal fade" id="configAdModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-sliders"></i> CẤU HÌNH TẠO QUẢNG CÁO (MUA)</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="adConfigForm">
+                    <input type="hidden" id="cfgFiat">
+                    <div class="row mb-3 bg-light p-2 rounded border">
+                        <div class="col-md-2">
+                            <label class="fw-bold small text-muted">Thị trường</label>
+                            <div class="fw-bold text-primary" id="dispFiat">CZK</div>
+                        </div>
+                        <div class="col-md-10">
+                            <label class="fw-bold small text-muted">Phương thức thanh toán khả dụng</label>
+                            <div class="fw-bold text-dark" id="dispPttt" style="font-size: 0.85rem;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="fw-bold small">Token</label>
+                            <input type="text" class="form-control form-control-sm text-center fw-bold" value="USDT" disabled>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="fw-bold small">Loại QC</label>
+                            <input type="text" class="form-control form-control-sm text-center fw-bold text-success" value="BUY (0)" disabled>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="fw-bold small text-danger">Giá Mua tham khảo (Live)</label>
+                            <div class="form-control form-control-sm border-danger fw-bold bg-white text-danger" id="dispRefPrice">Đang tải...</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3 p-2 bg-light rounded border border-light">
+                        <div class="col-md-3">
+                            <label class="fw-bold small text-primary">Min USDT *</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm border-primary" id="cfgMinUsdt" oninput="calculateFiatLimits()" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="fw-bold small text-primary">Max USDT *</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm border-primary" id="cfgMaxUsdt" oninput="calculateFiatLimits()" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="fw-bold small text-muted">Min Fiat (Tự tính)</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm bg-white fw-bold text-muted" id="cfgMin" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="fw-bold small text-muted">Max Fiat (Tự tính)</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm bg-white fw-bold text-muted" id="cfgMax" readonly>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="fw-bold small">Tổng USDT đăng lên chợ (Qty) *</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm w-50" id="cfgQty" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-bold small">Thời gian Thanh toán</label>
+                            <input type="text" class="form-control form-control-sm w-50 fw-bold text-muted bg-light" value="30 phút" disabled>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="fw-bold small">Ghi chú (Remark)</label>
+                            <textarea class="form-control form-control-sm" id="cfgRemark" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h6 class="fw-bold text-info"><i class="bi bi-shield-check"></i> Trading Preferences (Yêu cầu đối tác)</h6>
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-4">
+                            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="tpKyc" checked><label class="form-check-label small fw-bold text-dark">Bắt buộc KYC</label></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="tpEmail" checked><label class="form-check-label small fw-bold text-dark">Bắt buộc Email</label></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="tpMobile" checked><label class="form-check-label small fw-bold text-dark">Bắt buộc Mobile</label></div>
+                        </div>
+                        
+                        <div class="col-md-4 mt-3">
+                            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="tpUnpost"><label class="form-check-label small fw-bold">Khách không có Ads</label></div>
+                        </div>
+                        
+                        <div class="col-md-8 d-flex align-items-center gap-2 mt-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="tpReg" onchange="document.getElementById('tpRegDay').disabled = !this.checked">
+                                <label class="form-check-label small fw-bold text-nowrap">ĐK trên (Ngày):</label>
+                            </div>
+                            <input type="number" class="form-control form-control-sm w-50" id="tpRegDay" value="0" disabled>
+                        </div>
+
+                        <div class="col-md-6 d-flex align-items-center gap-2 mt-2">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="tpOrder" onchange="document.getElementById('tpOrderNum').disabled = !this.checked">
+                                <label class="form-check-label small fw-bold text-nowrap">Đơn (30d) >= :</label>
+                            </div>
+                            <input type="number" class="form-control form-control-sm w-50" id="tpOrderNum" value="0" disabled>
+                        </div>
+
+                        <div class="col-md-6 d-flex align-items-center gap-2 mt-2">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="tpRate" onchange="document.getElementById('tpRateNum').disabled = !this.checked">
+                                <label class="form-check-label small fw-bold text-nowrap">Tỷ lệ (30d) >= :</label>
+                            </div>
+                            <input type="number" class="form-control form-control-sm w-50" id="tpRateNum" value="0" disabled>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-success fw-bold" onclick="submitAdConfig()">LƯU CẤU HÌNH</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== MODAL SỬA QUẢNG CÁO ===================== -->
+<div class="modal fade" id="editAdModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square"></i> CHỈNH SỬA QUẢNG CÁO</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editAdForm">
+                    <input type="hidden" id="editAdId">
+                    <input type="hidden" id="editAdEmail">
+                    <input type="hidden" id="editAdGroup">
+                    <input type="hidden" id="editPaymentIds">
+                    <input type="hidden" id="editPaymentPeriod">
+                    <!-- Giữ lại cấu hình tĩnh KYC, Email, Mobile của Bybit -->
+                    <input type="hidden" id="editIsKyc">
+                    <input type="hidden" id="editIsEmail">
+                    <input type="hidden" id="editIsMobile">
+
+                    <div class="row mb-3 bg-light p-2 rounded border">
+                        <div class="col-md-3">
+                            <label class="fw-bold small text-muted">Ads ID</label>
+                            <div class="fw-bold text-dark" id="dispEditAdId">...</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="fw-bold small text-muted">Loại QC</label>
+                            <div class="fw-bold text-dark" id="dispEditSide">...</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="fw-bold small text-muted">Tài khoản</label>
+                            <div class="fw-bold text-primary" id="dispEditEmail">...</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3 p-2 bg-warning bg-opacity-10 rounded border border-warning">
+                        <div class="col-md-3">
+                            <label class="fw-bold small text-danger">Giá (Price) *</label>
+                            <input type="number" step="0.0001" class="form-control form-control-sm border-danger fw-bold text-danger" id="editPrice" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="fw-bold small text-success">Số lượng Coin *</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm border-success fw-bold text-success" id="editQuantity" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="fw-bold small text-primary">Min Fiat *</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm border-primary" id="editMin" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="fw-bold small text-primary">Max Fiat *</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm border-primary" id="editMax" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="fw-bold small">Ghi chú (Remark)</label>
+                            <textarea class="form-control form-control-sm" id="editRemark" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h6 class="fw-bold text-info"><i class="bi bi-shield-check"></i> Trading Preferences (Chỉ có thể sửa 4 điều kiện dưới đây)</h6>
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-6 mt-3">
+                            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="editUnpost"><label class="form-check-label small fw-bold">Đối tác phải là nhà quảng cáo</label></div>
+                        </div>
+                        
+                        <div class="col-md-6 d-flex align-items-center gap-2 mt-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="editReg" onchange="document.getElementById('editRegDay').disabled = !this.checked">
+                                <label class="form-check-label small fw-bold text-nowrap">Đăng ký tài khoản (Ngày):</label>
+                            </div>
+                            <input type="number" class="form-control form-control-sm w-25" id="editRegDay" value="0">
+                        </div>
+
+                        <div class="col-md-6 d-flex align-items-center gap-2 mt-2">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="editOrder" onchange="document.getElementById('editOrderNum').disabled = !this.checked">
+                                <label class="form-check-label small fw-bold text-nowrap">Hoàn thành 30 ngày (Đơn):</label>
+                            </div>
+                            <input type="number" class="form-control form-control-sm w-25" id="editOrderNum" value="0">
+                        </div>
+
+                        <div class="col-md-6 d-flex align-items-center gap-2 mt-2">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="editRate" onchange="document.getElementById('editRateNum').disabled = !this.checked">
+                                <label class="form-check-label small fw-bold text-nowrap">Tỉ lệ hoàn thành 30 ngày (%):</label>
+                            </div>
+                            <input type="number" class="form-control form-control-sm w-25" id="editRateNum" value="0">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-warning fw-bold text-dark" onclick="submitEditAd()"><i class="bi bi-floppy"></i> LƯU THAY ĐỔI</button>
+            </div>
+        </div>
+    </div>
+</div>

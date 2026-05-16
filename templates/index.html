@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Hệ Thống Phân Phối Đơn (Dispatcher)</title>
+    
+    <!-- Thư viện ngoài -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <!-- Tích hợp CSS tự viết -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="header-bg text-center">
+        <div class="container">
+            <h3 class="fw-bold mb-1"><i class="bi bi-diagram-3-fill"></i> HỆ THỐNG PHÂN PHỐI ĐƠN</h3>
+            <p class="text-white-50 mb-0 small">Quản lý, điều phối và cung cấp API đơn hàng</p>
+        </div>
+    </div>
+
+    <div class="container-fluid px-4 pb-5">
+        
+        <!-- TABS NAVIGATION -->
+        <ul class="nav nav-tabs justify-content-center mb-4 border-0" id="mainTabs" role="tablist">
+            <li class="nav-item mx-1" role="presentation">
+                <button class="nav-link active rounded-pill bg-white shadow-sm" id="distribute-tab" data-bs-toggle="tab" data-bs-target="#distribute" type="button" role="tab">
+                    <i class="bi bi-list-task"></i> 1. PHÂN PHỐI ĐƠN
+                </button>
+            </li>
+            <li class="nav-item mx-1" role="presentation">
+                <button class="nav-link rounded-pill bg-white shadow-sm" id="archive-tab" data-bs-toggle="tab" data-bs-target="#archive" type="button" role="tab" onclick="renderArchiveTab()">
+                    <i class="bi bi-archive-fill"></i> 2. LƯU TRỮ ĐƠN CŨ
+                </button>
+            </li>
+            <li class="nav-item mx-1" role="presentation">
+                <button class="nav-link rounded-pill bg-white shadow-sm" id="api-tab" data-bs-toggle="tab" data-bs-target="#api" type="button" role="tab">
+                    <i class="bi bi-code-slash"></i> 3. TÀI LIỆU API
+                </button>
+            </li>
+        </ul>
+
+        <!-- TABS CONTENT (Nhúng từ file nhỏ) -->
+        <div class="tab-content" id="mainTabsContent">
+            {% include 'components/tabs.html' %}
+        </div>
+    </div>
+
+    <!-- MODALS (Nhúng từ file nhỏ) -->
+    {% include 'components/modals.html' %}
+
+    <!-- Thư viện JS ngoài -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Truyền biến Server Jinja vào JS -->
+    <script>
+        window.APP_CONFIG = {
+            coreGroup: "{{ core_group }}"
+        };
+    </script>
+    
+    <!-- Tích hợp JS tự viết -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
